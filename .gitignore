@@ -7,3 +7,4 @@ checkpoints/
 data/
 wandb/
 .DS_Store
+*.egg-info/

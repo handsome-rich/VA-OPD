@@ -1,0 +1,60 @@
+# Paper appendix A.2. This is the protocol manifest consumed by external
+# generation/official scoring adapters, not a standalone benchmark runner.
+schema_version: 1
+protocol:
+  samples_per_prompt: 8
+  student_temperature: 1.0
+  aggregation: avg@8
+  prompt_policy: released
+  answer_policy: first_committed
+  judge_model: gpt-4o-2024-08-06
+  judge_temperature: 0.0
+  judge_prompt_policy: official_verbatim
+# Evaluation top_p is not specified in the paper. Record the chosen setting
+# in the benchmark run manifest; do not silently inherit training top_p=0.95.
+student_top_p: null
+checkpoint_selection:
+  dataset: geometry3k
+  split: validation
+  num_examples: 200
+  require_disjoint_training_ids: true
+  tie_break: earliest_global_step
+benchmarks:
+  wemath:
+    scoring: official_rule
+    metrics: [strict, loose]
+    reduction: arithmetic_mean
+    metric_unit: percent
+  mathvista:
+    split: testmini
+    scoring: official_gpt_judge
+    metrics: [accuracy]
+    metric_unit: percent
+  mathverse:
+    split: testmini
+    scoring: official_rule
+    metrics: [accuracy]
+    metric_unit: percent
+  hallusionbench:
+    scoring: official_gpt_judge
+    metrics: [aAcc, fAcc, qAcc]
+    reduction: arithmetic_mean
+    metric_unit: percent
+  ai2d:
+    scoring: official_rule
+    metrics: [accuracy]
+    metric_unit: percent
+  mmmu:
+    scoring: official_gpt_judge
+    metrics: [accuracy]
+    metric_unit: percent
+  mmstar:
+    scoring: official_gpt_judge
+    metrics: [accuracy]
+    metric_unit: percent
+  ocrbench:
+    scoring: official_rule
+    metrics: [final_score]
+    metric_unit: points_1000
+    score_divisor: 10
+    num_examples: 1000
