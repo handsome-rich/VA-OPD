@@ -1,0 +1,26 @@
+VA-OPD
+Copyright 2026 the VA-OPD authors.
+
+The VA-OPD objective, method adapter, data preparation, evaluation aggregation,
+configuration entrypoint, public recipes and tests in this release were rewritten
+for Visual-Advantage On-Policy Distillation for Vision-Language Models.
+
+The bundled training framework is derived from EasyR1, licensed under Apache-2.0,
+which is itself based on veRL, Copyright 2024 Bytedance Ltd. and/or its affiliates.
+Their copyright and license headers are retained in the corresponding source files.
+
+The framework also includes Apache-2.0 adaptations by the
+Awesome-Perception-Aware-RLVR authors, Copyright 2026, including multimodal
+counterfactual-view builders, teacher worker plumbing and perception utilities.
+These retained components keep their original copyright and license headers.
+The rewritten verl/trainer/distillation.py does not retain the previous TRL-derived
+loss implementation; other source-file attribution remains in place where applicable.
+
+This release modifies the training driver and actor to reuse original-image teacher
+logits for VA and KL, gather prompt statistics across data-parallel ranks, and enforce
+paper settings and held-out validation. It also changes overlong-prompt handling to
+raise an error, and keeps full resumable checkpoints.
+
+Datasets and pretrained model weights are distributed by their respective owners
+under their own licenses. Paper figures were supplied by the VA-OPD authors;
+rights in the figures remain with their authors.
