@@ -50,7 +50,7 @@ In the paper's Qwen3-VL-8B → 2B setting, VA-OPD improves over Standard OPD on 
 Generate $`K=4`$ responses for each image–query pair. For each response token, evaluate the frozen teacher under both image conditions, with exactly the same query and response prefix:
 
 ```math
-a_t = \max\!\left(\log p_T(y_t \mid v,q,y_{<t})-\log p_T(y_t \mid \tilde v,q,y_{<t}),\;0\right).
+a_t = \max\!\left(\log p_T(y_t \mid v,q,y_{\lt t})-\log p_T(y_t \mid \tilde v,q,y_{\lt t}),\;0\right).
 ```
 
 The pixelated image $`\tilde v`$ is bilinearly downsampled to **10% of each spatial dimension**, then resized back with nearest-neighbor interpolation. Pixelation is used only to measure VA; the KL target always comes from the teacher conditioned on the **original image**.
@@ -70,7 +70,7 @@ Average VA over each response's valid tokens, standardize those averages within 
 \qquad \lambda=0.5,
 ```
 
-where $`\mathrm{KL}_t=D_{\mathrm{KL}}(p_S(\cdot\mid v,q,y_{<t})\,\|\,p_T(\cdot\mid v,q,y_{<t}))`$. Prompt and padding tokens are excluded. Teacher scores and weighting coefficients are detached from gradients, and the objective is averaged over **prompts**. See [`va_opd/objective.py`](va_opd/objective.py) and the [implementation notes](docs/reproduction.md).
+where $`\mathrm{KL}_t=D_{\mathrm{KL}}(p_S(\cdot\mid v,q,y_{\lt t})\,\|\,p_T(\cdot\mid v,q,y_{\lt t}))`$. Prompt and padding tokens are excluded. Teacher scores and weighting coefficients are detached from gradients, and the objective is averaged over **prompts**. See [`va_opd/objective.py`](va_opd/objective.py) and the [implementation notes](docs/reproduction.md).
 
 The runtime reuses the original-image teacher forward for both VA and KL, adds one pixelated-image teacher pass, and synchronizes only rollout statistics across data-parallel ranks.
 

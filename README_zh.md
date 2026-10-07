@@ -50,7 +50,7 @@ VA 从两个层面指导蒸馏：根据相对视觉依赖**重加权同一问题
 每个图像与问题生成 $`K=4`$ 条回答。对于每个回答 token，在原图和像素化图像条件下使用冻结教师评分；问题和回答前缀完全相同：
 
 ```math
-a_t = \max\!\left(\log p_T(y_t \mid v,q,y_{<t})-\log p_T(y_t \mid \tilde v,q,y_{<t}),\;0\right).
+a_t = \max\!\left(\log p_T(y_t \mid v,q,y_{\lt t})-\log p_T(y_t \mid \tilde v,q,y_{\lt t}),\;0\right).
 ```
 
 像素化图像 $`\tilde v`$ 先通过双线性插值缩小至原图**宽、高各 10%**，再通过最近邻插值恢复原尺寸。像素化图像只用于计算 VA；KL 的目标始终来自教师在**原图**条件下的分布。
@@ -70,7 +70,7 @@ a_t = \max\!\left(\log p_T(y_t \mid v,q,y_{<t})-\log p_T(y_t \mid \tilde v,q,y_{
 \qquad \lambda=0.5,
 ```
 
-其中 $`\mathrm{KL}_t=D_{\mathrm{KL}}(p_S(\cdot\mid v,q,y_{<t})\,\|\,p_T(\cdot\mid v,q,y_{<t}))`$。问题与 padding token 不计入损失；教师评分和加权系数不参与梯度传播；最终目标按**问题**取平均。实现见 [`va_opd/objective.py`](va_opd/objective.py)，细节见[复现说明](docs/reproduction.md)。
+其中 $`\mathrm{KL}_t=D_{\mathrm{KL}}(p_S(\cdot\mid v,q,y_{\lt t})\,\|\,p_T(\cdot\mid v,q,y_{\lt t}))`$。问题与 padding token 不计入损失；教师评分和加权系数不参与梯度传播；最终目标按**问题**取平均。实现见 [`va_opd/objective.py`](va_opd/objective.py)，细节见[复现说明](docs/reproduction.md)。
 
 运行时复用原图教师前向，同时提供 VA 与 KL 所需的分数，再增加一次像素化图像教师前向；数据并行 rank 之间只同步 rollout 统计量。
 
