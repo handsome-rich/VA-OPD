@@ -1,10 +1,6 @@
 <div align="center">
 
-# 👁️ VA-OPD
-
-### Visual-Advantage On-Policy Distillation
-
-**基于视觉优势的视觉语言模型在策略蒸馏**
+# 👁️ VA-OPD: Visual-Advantage On-Policy Distillation
 
 **已被 NeurIPS 2026 接收**
 
@@ -51,30 +47,30 @@ VA 从两个层面指导蒸馏：根据相对视觉依赖**重加权同一问题
 
 ### 1. 计算视觉优势
 
-每个图像与问题生成 $K=4$ 条回答。对于每个回答 token，在原图和像素化图像条件下使用冻结教师评分；问题和回答前缀完全相同：
+每个图像与问题生成 $`K=4`$ 条回答。对于每个回答 token，在原图和像素化图像条件下使用冻结教师评分；问题和回答前缀完全相同：
 
-$$
+```math
 a_t = \max\!\left(\log p_T(y_t \mid v,q,y_{<t})-\log p_T(y_t \mid \tilde v,q,y_{<t}),\;0\right).
-$$
+```
 
-像素化图像 $\tilde v$ 先通过双线性插值缩小至原图**宽、高各 10%**，再通过最近邻插值恢复原尺寸。像素化图像只用于计算 VA；KL 的目标始终来自教师在**原图**条件下的分布。
+像素化图像 $`\tilde v`$ 先通过双线性插值缩小至原图**宽、高各 10%**，再通过最近邻插值恢复原尺寸。像素化图像只用于计算 VA；KL 的目标始终来自教师在**原图**条件下的分布。
 
 ### 2. 重加权 rollout，并划分 token 组
 
-在每条回答的有效 token 上计算平均 VA，再在同一问题的 $K$ 条回答之间进行标准化，以温度 $\tau=1$ 的 softmax 得到 rollout 权重。每条回答中 VA 最高的 **20%** token 组成 $V$，其余 token 组成 $L$。
+在每条回答的有效 token 上计算平均 VA，再在同一问题的 $`K`$ 条回答之间进行标准化，以温度 $`\tau=1`$ 的 softmax 得到 rollout 权重。每条回答中 VA 最高的 **20%** token 组成 $`V`$，其余 token 组成 $`L`$。
 
 ### 3. 优化分组反向 KL
 
-$$
+```math
 \mathcal L = \frac{1}{B}\sum_{b=1}^{B}\sum_{k=1}^{K}w_b^{(k)}
 \left[
 \frac{\lambda}{|V_b^{(k)}|}\sum_{t\in V_b^{(k)}}\mathrm{KL}_t
 +\frac{1-\lambda}{|L_b^{(k)}|}\sum_{t\in L_b^{(k)}}\mathrm{KL}_t
 \right],
 \qquad \lambda=0.5,
-$$
+```
 
-其中 $\mathrm{KL}_t=D_{\mathrm{KL}}(p_S(\cdot\mid v,q,y_{<t})\,\|\,p_T(\cdot\mid v,q,y_{<t}))$。问题与 padding token 不计入损失；教师评分和加权系数不参与梯度传播；最终目标按**问题**取平均。实现见 [`va_opd/objective.py`](va_opd/objective.py)，细节见[复现说明](docs/reproduction.md)。
+其中 $`\mathrm{KL}_t=D_{\mathrm{KL}}(p_S(\cdot\mid v,q,y_{<t})\,\|\,p_T(\cdot\mid v,q,y_{<t}))`$。问题与 padding token 不计入损失；教师评分和加权系数不参与梯度传播；最终目标按**问题**取平均。实现见 [`va_opd/objective.py`](va_opd/objective.py)，细节见[复现说明](docs/reproduction.md)。
 
 运行时复用原图教师前向，同时提供 VA 与 KL 所需的分数，再增加一次像素化图像教师前向；数据并行 rank 之间只同步 rollout 统计量。
 
@@ -104,16 +100,6 @@ $$
 | 8B → 2B | Geometry3K | 45.4 / 64.6 | **48.3 / 66.1** | +2.9 / +1.5 |
 | 32B → 2B | Geometry3K | 51.1 / 65.3 | **54.8 / 67.3** | +3.7 / +2.0 |
 | 8B → 2B | ViRL39K | 46.4 / 65.5 | **50.2 / 68.0** | +3.8 / +2.5 |
-
-### 消融与训练效率
-
-<div align="center">
-<img src="assets/ablation.png" width="96%" alt="论文的组件消融及训练轨迹：VA-OPD 的准确率与视觉优势同时提升。">
-<br>
-<img src="assets/efficiency.png" width="60%" alt="论文在八张 A100 上测得的 MathVerse 准确率与训练时间关系。">
-</div>
-
-在论文的 8×A100 设置下，VA-OPD 达到 Standard OPD 最终 MathVerse 准确率约需 **6.5 小时**，Standard OPD 约需 **19.3 小时**，达到相同准确率的速度提高约 **3 倍**。
 
 ---
 
@@ -219,12 +205,10 @@ Prompt 长度上限为 **8,192 token**。图像预处理、样本选取、token 
 ## 📚 引用
 
 ```bibtex
-@article{liu2026vaopd,
-  title={Visual-Advantage On-Policy Distillation for Vision-Language Models},
-  author={Liu, Ruiqi and Lv, Xiaolei and Li, Gengsheng and Zhu, Ximo and
-          Wang, Zhiheng and Zhang, Zhengbo and Chen, Junkai and Li, Zhiheng and
-          Li, Bo and Gao, Jun and Wu, Shu},
-  journal={arXiv preprint arXiv:2605.21924},
+@article{liu2026visual,
+  title={Visual-advantage on-policy distillation for vision-language models},
+  author={Liu, Ruiqi and Lv, Xiaolei and Li, Gengsheng and Zhu, Ximo and Wang, Zhiheng and Zhang, Zhengbo and Chen, Junkai and Li, Zhiheng and Li, Bo and Gao, Jun and others},
+  journal={NeurIPS 2026},
   year={2026}
 }
 ```

@@ -1,10 +1,6 @@
 <div align="center">
 
-# 👁️ VA-OPD
-
-### Visual-Advantage On-Policy Distillation
-
-**Teaching Vision-Language Models to Learn from Fine-Grained Visual Detail**
+# 👁️ VA-OPD: Visual-Advantage On-Policy Distillation
 
 **Accepted to NeurIPS 2026**
 
@@ -51,30 +47,30 @@ In the paper's Qwen3-VL-8B → 2B setting, VA-OPD improves over Standard OPD on 
 
 ### 1. Measure visual advantage
 
-Generate $K=4$ responses for each image–query pair. For each response token, evaluate the frozen teacher under both image conditions, with exactly the same query and response prefix:
+Generate $`K=4`$ responses for each image–query pair. For each response token, evaluate the frozen teacher under both image conditions, with exactly the same query and response prefix:
 
-$$
+```math
 a_t = \max\!\left(\log p_T(y_t \mid v,q,y_{<t})-\log p_T(y_t \mid \tilde v,q,y_{<t}),\;0\right).
-$$
+```
 
-The pixelated image $\tilde v$ is bilinearly downsampled to **10% of each spatial dimension**, then resized back with nearest-neighbor interpolation. Pixelation is used only to measure VA; the KL target always comes from the teacher conditioned on the **original image**.
+The pixelated image $`\tilde v`$ is bilinearly downsampled to **10% of each spatial dimension**, then resized back with nearest-neighbor interpolation. Pixelation is used only to measure VA; the KL target always comes from the teacher conditioned on the **original image**.
 
 ### 2. Weight rollouts and group tokens
 
-Average VA over each response's valid tokens, standardize those averages within the $K$ sibling rollouts, and apply a softmax with temperature $\tau=1$. Within each response, place the **top 20%** of tokens by VA in $V$ and the remaining tokens in $L$.
+Average VA over each response's valid tokens, standardize those averages within the $`K`$ sibling rollouts, and apply a softmax with temperature $`\tau=1`$. Within each response, place the **top 20%** of tokens by VA in $`V`$ and the remaining tokens in $`L`$.
 
 ### 3. Optimize grouped reverse KL
 
-$$
+```math
 \mathcal L = \frac{1}{B}\sum_{b=1}^{B}\sum_{k=1}^{K}w_b^{(k)}
 \left[
 \frac{\lambda}{|V_b^{(k)}|}\sum_{t\in V_b^{(k)}}\mathrm{KL}_t
 +\frac{1-\lambda}{|L_b^{(k)}|}\sum_{t\in L_b^{(k)}}\mathrm{KL}_t
 \right],
 \qquad \lambda=0.5,
-$$
+```
 
-where $\mathrm{KL}_t=D_{\mathrm{KL}}(p_S(\cdot\mid v,q,y_{<t})\,\|\,p_T(\cdot\mid v,q,y_{<t}))$. Prompt and padding tokens are excluded. Teacher scores and weighting coefficients are detached from gradients, and the objective is averaged over **prompts**. See [`va_opd/objective.py`](va_opd/objective.py) and the [implementation notes](docs/reproduction.md).
+where $`\mathrm{KL}_t=D_{\mathrm{KL}}(p_S(\cdot\mid v,q,y_{<t})\,\|\,p_T(\cdot\mid v,q,y_{<t}))`$. Prompt and padding tokens are excluded. Teacher scores and weighting coefficients are detached from gradients, and the objective is averaged over **prompts**. See [`va_opd/objective.py`](va_opd/objective.py) and the [implementation notes](docs/reproduction.md).
 
 The runtime reuses the original-image teacher forward for both VA and KL, adds one pixelated-image teacher pass, and synchronizes only rollout statistics across data-parallel ranks.
 
@@ -104,16 +100,6 @@ The runtime reuses the original-image teacher forward for both VA and KL, adds o
 | 8B → 2B | Geometry3K | 45.4 / 64.6 | **48.3 / 66.1** | +2.9 / +1.5 |
 | 32B → 2B | Geometry3K | 51.1 / 65.3 | **54.8 / 67.3** | +3.7 / +2.0 |
 | 8B → 2B | ViRL39K | 46.4 / 65.5 | **50.2 / 68.0** | +3.8 / +2.5 |
-
-### Ablation and training efficiency
-
-<div align="center">
-<img src="assets/ablation.png" width="96%" alt="Paper component ablation and student trajectories showing accuracy and visual advantage improving together under VA-OPD.">
-<br>
-<img src="assets/efficiency.png" width="60%" alt="Paper MathVerse accuracy versus training time on eight A100 GPUs.">
-</div>
-
-On the paper's 8×A100 setup, VA-OPD reaches Standard OPD's final MathVerse accuracy in approximately **6.5 hours versus 19.3 hours**, a **3× speedup** at the same accuracy target.
 
 ---
 
@@ -219,12 +205,10 @@ The prompt length limit is **8,192 tokens**. Image preprocessing, sample selecti
 ## 📚 Citation
 
 ```bibtex
-@article{liu2026vaopd,
-  title={Visual-Advantage On-Policy Distillation for Vision-Language Models},
-  author={Liu, Ruiqi and Lv, Xiaolei and Li, Gengsheng and Zhu, Ximo and
-          Wang, Zhiheng and Zhang, Zhengbo and Chen, Junkai and Li, Zhiheng and
-          Li, Bo and Gao, Jun and Wu, Shu},
-  journal={arXiv preprint arXiv:2605.21924},
+@article{liu2026visual,
+  title={Visual-advantage on-policy distillation for vision-language models},
+  author={Liu, Ruiqi and Lv, Xiaolei and Li, Gengsheng and Zhu, Ximo and Wang, Zhiheng and Zhang, Zhengbo and Chen, Junkai and Li, Zhiheng and Li, Bo and Gao, Jun and others},
+  journal={NeurIPS 2026},
   year={2026}
 }
 ```
