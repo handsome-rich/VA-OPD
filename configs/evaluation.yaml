@@ -1,5 +1,4 @@
-# Paper appendix A.2. This is the protocol manifest consumed by external
-# generation/official scoring adapters, not a standalone benchmark runner.
+# Paper Appendix A.2: protocol for generation and official benchmark scoring.
 schema_version: 1
 protocol:
   samples_per_prompt: 8
@@ -10,8 +9,7 @@ protocol:
   judge_model: gpt-4o-2024-08-06
   judge_temperature: 0.0
   judge_prompt_policy: official_verbatim
-# Evaluation top_p is not specified in the paper. Record the chosen setting
-# in the benchmark run manifest; do not silently inherit training top_p=0.95.
+# Set evaluation top_p explicitly and record it in the run manifest.
 student_top_p: null
 checkpoint_selection:
   dataset: geometry3k

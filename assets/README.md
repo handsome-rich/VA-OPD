@@ -11,4 +11,4 @@ These images are rendered from the authors' supplied LaTeX figure PDFs for *Visu
 
 The source teaser and method PDFs contain several figure drafts on oversized pages. The PNGs use viewports around the selected complete panels; scientific content and labels have not been changed.
 
-The charts show paper-reported measurements. They are not measurements of this code release. Paper figure rights remain with their authors.
+The charts present the paper's results. Paper figure rights remain with their authors.

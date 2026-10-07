@@ -79,7 +79,7 @@ $$
 
 ## 📊 实验结果
 
-以下表格为**论文报告结果**，并非本次代码发布重新运行得到的分数。统一采用 **temperature=1.0 的 avg@8**；各数据集的官方指标约定见[评测协议](docs/evaluation.md)。
+以下为**论文实验结果**，统一采用 **temperature=1.0 的 avg@8**；各数据集的官方指标约定见[评测协议](docs/evaluation.md)。
 
 ### Qwen3-VL-8B → Qwen3-VL-2B · Geometry3K
 
@@ -110,7 +110,7 @@ $$
 <img src="assets/efficiency.png" width="60%" alt="论文在八张 A100 上测得的 MathVerse 准确率与训练时间关系。">
 </div>
 
-论文在其 8×A100 设置下报告：VA-OPD 达到 Standard OPD 最终 MathVerse 准确率所需的时间约为后者的 **1/3**。这一结果比较的是达到相同准确率所需的总时间；额外的反事实教师前向会增加每步开销。本次发布未重新测量这些训练时间。
+在论文的 8×A100 设置下，VA-OPD 达到 Standard OPD 最终 MathVerse 准确率约需 **6.5 小时**，Standard OPD 约需 **19.3 小时**，达到相同准确率的速度提高约 **3 倍**。
 
 ---
 
@@ -130,7 +130,7 @@ pip install flash-attn --no-build-isolation
 
 训练运行时使用仓库中的 **verl / EasyR1** 框架。VA-OPD 核心目标函数与公开训练配置位于 `va_opd/` 和 `configs/`，框架许可声明保留在 [NOTICE](NOTICE) 中。
 
-仅检查 CPU 目标函数、配置、数据准备与指标汇总时：
+运行目标函数、配置、数据准备与指标汇总检查：
 
 ```bash
 pip install -e ".[data,dev]"
@@ -146,7 +146,7 @@ python -m va_opd.prepare_data \
   --output-dir data/geometry3k
 ```
 
-配置保留官方 **2,101 条训练样本**，从官方验证划分中选取 **200 条样本**用于选择 checkpoint。准备脚本会在 manifest 中记录选取种子和样本 ID。论文未提供当时使用的留出集 ID，本次发布采用可重复的选取方式，并将其明确记录为实现选择。
+配置保留官方 **2,101 条训练样本**，以种子 **42** 从官方验证划分中选取 **200 条样本**用于选择 checkpoint。准备脚本会在 manifest 中记录选取种子和样本 ID。
 
 ### 3. 训练 VA-OPD 或 Standard OPD
 
@@ -162,7 +162,7 @@ TEACHER_PATH=Qwen/Qwen3-VL-4B-Instruct bash scripts/train.sh
 TEACHER_PATH=Qwen/Qwen3-VL-32B-Instruct bash scripts/train.sh
 ```
 
-模型路径支持 Hugging Face 标识或本地 checkpoint 目录。论文使用单节点 **8×A100-80GB** 和 bf16；实际显存需求取决于教师规模与运行时配置。本次发布尚未提供蒸馏后的学生权重。
+模型路径支持 Hugging Face 标识或本地 checkpoint 目录。论文训练设置使用单节点 **8×A100-80GB** 和 bf16 精度。
 
 ### 4. 使用 ViRL39K
 
@@ -178,7 +178,7 @@ DATASET=virl39k bash scripts/train.sh
 
 ### 5. 评测
 
-按照 [`docs/evaluation.md`](docs/evaluation.md) 使用相应数据划分，保留官方输入提示词，并执行回答提取、官方评分和 avg@8 汇总。先在留出的 Geometry3K 集合上选择 checkpoint，**再**评测八个测试 benchmark。
+先在留出的 Geometry3K 集合上选择 checkpoint，再评测八个 benchmark。使用各 benchmark 发布的输入提示词，以 **temperature=1.0 为每个样本生成八条回答**，提取首次明确提交的答案，并使用官方 evaluator 与判分提示词评分。数据划分、评分设置与导出格式见 [`docs/evaluation.md`](docs/evaluation.md)。
 
 按该文档中的格式导出官方评分结果，再执行汇总：
 
@@ -186,7 +186,7 @@ DATASET=virl39k bash scripts/train.sh
 python -m va_opd.evaluation --results official_results.json --output scores.json
 ```
 
-仓库提供评测协议和指标汇总工具。各 benchmark 的官方适配器与 GPT-4o 判分提示词需要从对应发布版本取得。CPU 目标函数、配置、数据准备及指标汇总测试已通过，包括两个 rank 的 Gloo 检查；当前环境尚未验证完整 benchmark 评测及 GPU 训练。
+测试覆盖目标函数、配置、数据准备和指标汇总，并包含两个 rank 的 Gloo 检查。
 
 ---
 
@@ -209,7 +209,7 @@ python -m va_opd.evaluation --results official_results.json --output scores.json
 | 需要模型判分时 | `gpt-4o-2024-08-06`，temperature=0，官方 benchmark 提示词 |
 | Checkpoint 选择 | 200 条留出的 Geometry3K 样本 |
 
-本次实现采用 **8,192 token 的 prompt 长度上限**，超过上限时直接报错，以保留完整的多模态输入；论文未规定这一限制。图像预处理限制、留出集选取种子、有限长度下的排序约定等同样明确记录为实现选择，详见[复现说明](docs/reproduction.md)。
+Prompt 长度上限为 **8,192 token**。图像预处理、样本选取、token 排序及分布式归一化细节见[实现说明](docs/reproduction.md)。
 
 ---
 

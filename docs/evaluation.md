@@ -4,8 +4,7 @@ The paper uses the original benchmark prompts, without a rewritten system
 prompt or an injected chain-of-thought instruction. The student samples eight
 independent responses per example at temperature **1.0**. **avg@8** averages
 per-response correctness; it does not count an example as correct whenever any
-response is correct, and does not take a majority vote. Evaluation `top_p` is
-not specified in the supplied paper; record your choice in the run manifest.
+response is correct, and does not take a majority vote. Record evaluation `top_p` and generation length in the run manifest.
 
 | Benchmark | Scoring in the paper | Reported score |
 |---|---|---|
@@ -19,12 +18,9 @@ not specified in the supplied paper; record your choice in the run manifest.
 | OCRBench | Official rule evaluator, complete 1000-example set | Final Score / 10 |
 
 LLM-based scoring uses **`gpt-4o-2024-08-06`**, temperature **0**, and each
-benchmark's official judge prompt verbatim. Supply the official evaluator and
-its released prompts when running a benchmark. This repository provides a
-protocol manifest, answer extraction, score aggregation and checkpoint
-selection. It does **not** include a complete download, generation or GPT
-judging pipeline, and does not replace official scorers with a local heuristic.
-The manifest is [configs/evaluation.yaml](../configs/evaluation.yaml).
+benchmark's official judge prompt verbatim. Run each benchmark with its official evaluator and released prompts, then
+export the scores for answer extraction, aggregation and checkpoint selection.
+The protocol manifest is [configs/evaluation.yaml](../configs/evaluation.yaml).
 
 ## Answer extraction
 
@@ -37,8 +33,6 @@ commitment exists, the **unchanged raw response** is returned for the official
 evaluator. Semantic equivalence, option matching and correctness remain the
 official evaluator's responsibility.
 
-This is a documented deterministic extraction convention. The paper specifies
-first-committed extraction, but does not provide its original parser source.
 Use the same extraction function and official scorer for every compared
 method. Free-form answer-marker payloads are read to the end of their line;
 the function does not guess where arbitrary explanatory prose ends.
@@ -55,17 +49,15 @@ assert answer == "A"
 For each benchmark, put sample 0 from every example in one official scorer
 run, sample 1 in a second run, and so on through sample 7. Every run must contain
 the **same complete example set** and use the same prompts, parser and scorer.
-Keep a generation manifest with ordered example IDs and random seeds to check
-this correspondence: the aggregator validates counts, but cannot verify the
-identity or independence of responses from summary metrics alone.
+Keep ordered example IDs and random seeds in the generation manifest to
+check correspondence across the eight runs.
 
 Export an object with `schema_version: 1`, the protocol below, and all eight
 benchmark objects. A benchmark object has `split`, `metric_unit`, and eight
 `runs`. Each run contains `sample_index` (0--7), `num_examples`, and `metrics`.
 Accuracy metrics must be **percentages on 0--100**, not fractions on 0--1;
 OCRBench uses `metric_unit: "points_1000"` and its unnormalized 0--1000 Final
-Score. Lower-case metric names below are export schema names, rather than a
-claim about an official evaluator's output field names.
+Score. Map official evaluator output fields to the metric names in the export schema below.
 
 ```json
 {

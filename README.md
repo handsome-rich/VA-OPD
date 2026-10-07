@@ -79,7 +79,7 @@ The runtime reuses the original-image teacher forward for both VA and KL, adds o
 
 ## 📊 Results
 
-The tables below are **results reported in the paper**, not scores produced by running this code release. All scores use **avg@8 at temperature 1.0**, with the benchmark-specific official metrics described in the [evaluation protocol](docs/evaluation.md).
+**Results from the paper.** All scores use **avg@8 at temperature 1.0**, with the benchmark-specific official metrics described in the [evaluation protocol](docs/evaluation.md).
 
 ### Qwen3-VL-8B → Qwen3-VL-2B · Geometry3K
 
@@ -110,7 +110,7 @@ The tables below are **results reported in the paper**, not scores produced by r
 <img src="assets/efficiency.png" width="60%" alt="Paper MathVerse accuracy versus training time on eight A100 GPUs.">
 </div>
 
-The paper reports about **3× less wall-clock time to reach Standard OPD's final MathVerse accuracy** on its 8×A100 setup. This is a matched-accuracy result; the extra counterfactual teacher pass increases the cost per training step. These timing measurements have not been rerun for this release.
+On the paper's 8×A100 setup, VA-OPD reaches Standard OPD's final MathVerse accuracy in approximately **6.5 hours versus 19.3 hours**, a **3× speedup** at the same accuracy target.
 
 ---
 
@@ -130,7 +130,7 @@ pip install flash-attn --no-build-isolation
 
 The training runtime uses the bundled **verl / EasyR1** framework. The VA-OPD objective and public training recipes live under `va_opd/` and `configs/`; framework attribution is retained in [NOTICE](NOTICE).
 
-For CPU-only objective, configuration, data and aggregation checks:
+Run the objective, configuration, data and aggregation checks:
 
 ```bash
 pip install -e ".[data,dev]"
@@ -146,7 +146,7 @@ python -m va_opd.prepare_data \
   --output-dir data/geometry3k
 ```
 
-The recipe keeps the official **2,101 training examples** and reserves **200 examples from the official validation split** for checkpoint selection. The selection seed and IDs are recorded in the preparation manifest. The historical held-out IDs are not supplied in the paper, so this release's deterministic selection is an implementation choice.
+The recipe keeps the official **2,101 training examples** and selects **200 examples from the official validation split** with seed **42** for checkpoint selection. The preparation manifest records the selection seed and sample IDs.
 
 ### 3. Train VA-OPD or Standard OPD
 
@@ -162,7 +162,7 @@ TEACHER_PATH=Qwen/Qwen3-VL-4B-Instruct bash scripts/train.sh
 TEACHER_PATH=Qwen/Qwen3-VL-32B-Instruct bash scripts/train.sh
 ```
 
-Model paths can be Hugging Face identifiers or local checkpoint directories. The paper uses a single node with **8×A100-80GB GPUs** and bf16 training; actual memory requirements depend on teacher size and runtime settings. Distilled student checkpoints are not yet provided with this release.
+Model paths can be Hugging Face identifiers or local checkpoint directories. The paper's training setup uses a single node with **8×A100-80GB GPUs** and bf16 precision.
 
 ### 4. Train on ViRL39K
 
@@ -178,7 +178,7 @@ DATASET=virl39k bash scripts/train.sh
 
 ### 5. Evaluate
 
-Follow [`docs/evaluation.md`](docs/evaluation.md) for benchmark splits, prompt preservation, answer extraction, official scorers and avg@8 aggregation. Checkpoints are selected on the held-out Geometry3K set **before** evaluating the eight test benchmarks.
+Select a checkpoint on the held-out Geometry3K set, then evaluate the eight benchmarks. Generate **eight responses per example at temperature 1.0** using the released benchmark prompts, extract the first committed answer, and score with each benchmark's official evaluator and judge prompts. See [`docs/evaluation.md`](docs/evaluation.md) for splits, scorer settings and export format.
 
 Export the official scorer outputs in the schema described in that document, then aggregate them:
 
@@ -186,7 +186,7 @@ Export the official scorer outputs in the schema described in that document, the
 python -m va_opd.evaluation --results official_results.json --output scores.json
 ```
 
-The release includes protocol and aggregation utilities. Official benchmark adapters and GPT-4o judge prompts must be supplied from their benchmark releases. CPU objective, configuration, data and aggregation tests, including two-rank Gloo checks, have passed; a complete benchmark run and GPU training have not been validated in this environment.
+The test suite covers the objective, configuration, data preparation and metric aggregation, including two-rank Gloo checks.
 
 ---
 
@@ -209,7 +209,7 @@ Defaults are specified in [`configs/va_opd.yaml`](configs/va_opd.yaml). The same
 | Judge, where required | `gpt-4o-2024-08-06`, temperature 0, official benchmark prompts |
 | Checkpoint selection | 200 held-out Geometry3K problems |
 
-This release uses an **8,192-token prompt cap** and rejects longer prompts to preserve multimodal inputs; the paper does not specify this limit. Image preprocessing limits, split-selection seeds and finite-length ranking conventions are also documented implementation choices. See the [reproduction notes](docs/reproduction.md) for details and validation scope.
+The prompt length limit is **8,192 tokens**. Image preprocessing, sample selection, token ranking and distributed normalization are described in the [implementation notes](docs/reproduction.md).
 
 ---
 

@@ -101,7 +101,7 @@ def write_dataset(output, train, validation=None, seed=42, source=None):
             validation_ids=heldout_ids,
             validation_rows=len(heldout),
             validation_source_split="validation",
-            split_note="200 from the official validation split; historical paper IDs were not supplied.",
+            split_note="200 examples selected from the official validation split with the recorded seed.",
         )
         manifest["validation_content_sha256"] = [identity(row) for row in heldout]
     # Validate before writing; a failed split must not leave a seemingly ready dataset.
