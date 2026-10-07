@@ -6,6 +6,9 @@
 
 **基于视觉优势的视觉语言模型在策略蒸馏**
 
+**已被 NeurIPS 2026 接收**
+
+[![NeurIPS 2026 Accepted](https://img.shields.io/badge/NeurIPS%202026-Accepted-2ea44f.svg)](https://neurips.cc/Conferences/2026)
 [![Paper](https://img.shields.io/badge/Paper-arXiv%3A2605.21924-b31b1b.svg?logo=arxiv&logoColor=white)](https://arxiv.org/abs/2605.21924)
 [![License](https://img.shields.io/badge/Code-Apache%202.0-blue.svg)](LICENSE)
 [![Python](https://img.shields.io/badge/Python-3.10%2B-yellow.svg?logo=python&logoColor=white)](https://www.python.org/)
